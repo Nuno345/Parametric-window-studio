@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Parametric Window Studio | Ultimate Edition</title>
+    <style>
+        :root {
+            --bg-canvas: #0d1117;
+            --panel-bg: rgba(22, 27, 34, 0.85);
+            --panel-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f0f6fc;
+            --text-muted: #8b949e;
+            --accent: #38bdf8;
+            --accent-hover: #7dd3fc;
+            --input-bg: #0d1117;
+        }
+
+        * { box-sizing: border-box; user-select: none; margin: 0; padding: 0; font-family: 'Inter', -apple-system, sans-serif; }
+        body, html { width: 100%; height: 100%; overflow: hidden; background: var(--bg-canvas); color: var(--text-main); }
+        
+        #viewer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; }
+
+        /* Floating Properties Panel */
+        #properties-panel {
+            position: absolute; right: 20px; top: 20px; width: 360px; max-height: calc(100vh - 40px);
+            background: var(--panel-bg); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--panel-border); border-radius: 20px; z-index: 10;
+            display: flex; flex-direction: column; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+        }
+
+        .panel-header { padding: 20px; border-bottom: 1px solid var(--panel-border); }
+        .panel-header h2 { font-size: 1.1rem; font-weight: 700; letter-spacing: 0.5px; margin-bottom: 15px; }
+        
+        /* Tabs & Banner */
+        .tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+        .tab { flex: 1; text-align: center; padding: 8px 0; background: var(--input-bg); border: 1px solid var(--panel-border); border-radius: 8px; font-size: 0.8rem; font-weight: 600; color: var(--text-muted); cursor: pointer; transition: 0.2s; }
+        .tab.active { background: var(--accent); color: #000; border-color: var(--accent); }
+        .unit-banner { background: rgba(56, 189, 248, 0.1); border: 1px solid rgba(56, 189, 248, 0.2); color: var(--accent); padding: 10px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; text-align: center; transition: 0.3s; }
+
+        .panel-content { padding: 20px; overflow-y: auto; flex: 1; }
+        .panel-content::-webkit-scrollbar { width: 6px; }
+        .panel-content::-webkit-scrollbar-thumb { background: #30363d; border-radius: 10px; }
+
+        /* Presets Area */
+        .preset-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 24px; }
+        .preset-btn {
+            padding: 10px 0; background: var(--input-bg); border: 1px solid var(--panel-border);
+            color: var(--text-muted); border-radius: 10px; font-size: 0.78rem; font-weight: 600;
+            cursor: pointer; transition: 0.2s; text-align: center;
+        }
+        .preset-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+        /* Section Styling */
+        .section-title { font-size: 0.75rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; margin: 20px 0 10px 0; letter-spacing: 1px; }
+        
+        /* Advanced Dual-Input Controls */
+        .control-row { margin-bottom: 16px; }
+        .control-label { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 8px; color: #c9d1d9; }
+        .input-group { display: flex; gap: 12px; align-items: center; }
+        
+        input[type="range"] {
+            flex: 1; -webkit-appearance: none; height: 4px; background: #30363d; border-radius: 4px; outline: none;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; width: 14px; height: 14px; background: var(--text-main); border-radius: 50%; cursor: pointer; transition: 0.1s;
+        }
+        input[type="range"]::-webkit-slider-thumb:hover { transform: scale(1.3); background: var(--accent); }
+
+        input[type="number"] {
+            width: 65px; background: var(--input-bg); border: 1px solid var(--panel-border); color: var(--accent);
+            padding: 4px 6px; border-radius: 6px; font-family: monospace; font-size: 0.85rem; font-weight: 600; text-align: center; outline: none;
+        }
+        input[type="number"]:focus { border-color: var(--accent); }
+
+        /* Toggle Switch */
+        .toggle-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; font-size: 0.85rem; font-weight: 500; background: rgba(255,255,255,0.02); padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.05); }
+        .switch { position: relative; display: inline-block; width: 36px; height: 20px; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #30363d; transition: .3s; border-radius: 20px; }
+        .slider:before { position: absolute; content: ""; height: 14px; width: 14px; left: 3px; bottom: 3px; background-color: white; transition: .3s; border-radius: 50%; }
+        input:checked + .slider { background-color: var(--accent); }
+        input:checked + .slider:before { transform: translateX(16px); }
+
+        /* Dropdowns */
+        select {
+            width: 100%; background: var(--input-bg); color: var(--text-main); border: 1px solid var(--panel-border);
+            padding: 8px 12px; border-radius: 8px; font-size: 0.85rem; outline: none; cursor: pointer; margin-bottom: 16px;
+        }
+
+        /* Export & Slicer Stats Panel */
+        .slicer-stats { background: rgba(0,0,0,0.2); border-top: 1px solid var(--panel-border); padding: 20px; padding-bottom: 15px; }
+        .stat-row { display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 8px; color: #c9d1d9; }
+        .stat-row strong { color: var(--accent); font-family: monospace; font-size: 0.95rem; }
+        
+        .export-panel { padding: 20px; border-top: 1px solid rgba(255,255,255,0.05); background: rgba(0,0,0,0.3); }
+        .btn-export {
+            width: 100%; padding: 14px; background: var(--accent); color: #000; border: none; border-radius: 10px;
+            font-size: 0.9rem; font-weight: 800; cursor: pointer; transition: 0.2s; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .btn-export:hover { background: var(--accent-hover); box-shadow: 0 0 20px rgba(56, 189, 248, 0.4); transform: translateY(-2px); }
+        
+        .collapsible { transition: max-height 0.3s ease-out, opacity 0.3s; overflow: hidden; max-height: 500px; opacity: 1; }
+        .collapsible.hidden { max-height: 0; opacity: 0; margin: 0; pointer-events: none; }
+    </style>
+</head>
+<body>
+
+    <div id="viewer"></div>
+
+    <div id="properties-panel">
+        <div class="panel-header">
+            <h2>⚙️ Print Studio Pro</h2>
+            <div class="tabs">
+                <div class="tab active" id="tab-metric">Metric</div>
+                <div class="tab" id="tab-imperial">Imperial</div>
+            </div>
+            <div class="unit-banner" id="unit-banner">⚠️ All units are in mm</div>
+        </div>
+        
+        <div class="panel-content">
+            <div class="preset-grid">
+                <button class="preset-btn" onclick="loadPreset('modern')">Modern</button>
+                <button class="preset-btn" onclick="loadPreset('gothic')">Gothic</button>
+                <button class="preset-btn" onclick="loadPreset('classic')">Classic</button>
+                <button class="preset-btn" onclick="loadPreset('minimalist')">Minimalist</button>
+            </div>
+
+            <div class="section-title">Overall Dimensions</div>
+            <div class="control-row"><div class="control-label">Overall Width</div><div class="input-group"><input type="range" id="win_w" min="10" max="200" value="60"><input type="number" id="win_w_num" min="10" max="200"></div></div>
+            <div class="control-row"><div class="control-label">Overall Height</div><div class="input-group"><input type="range" id="win_h" min="10" max="200" value="80"><input type="number" id="win_h_num" min="10" max="200"></div></div>
+            <div class="control-row"><div class="control-label">Frame Depth (Z)</div><div class="input-group"><input type="range" id="depth" min="0.6" max="20" step="0.1" value="4.0"><input type="number" id="depth_num" min="0.6" max="20" step="0.1"></div></div>
+            <div class="control-row"><div class="control-label">Inner Frame Thick</div><div class="input-group"><input type="range" id="ft" min="0.4" max="10" step="0.1" value="3.0"><input type="number" id="ft_num" min="0.4" max="10" step="0.1"></div></div>
+
+            <div class="section-title">Architecture</div>
+            
+            <div class="toggle-row">Enable Arch Top <label class="switch"><input type="checkbox" id="has_arch" checked><span class="slider"></span></label></div>
+            <div id="arch_group" class="collapsible">
+                <div class="control-row"><div class="control-label">Arch Height Radius</div><div class="input-group"><input type="range" id="arch_h" min="5" max="60" value="25"><input type="number" id="arch_h_num" min="5" max="60"></div></div>
+            </div>
+
+            <div class="toggle-row">Enable Window Sill <label class="switch"><input type="checkbox" id="has_sill" checked><span class="slider"></span></label></div>
+            <div id="sill_group" class="collapsible">
+                <div class="control-row"><div class="control-label">Sill Drop (Y)</div><div class="input-group"><input type="range" id="sill_y" min="1" max="15" step="0.5" value="4.0"><input type="number" id="sill_y_num" min="1" max="15" step="0.5"></div></div>
+                <div class="control-row"><div class="control-label">Sill Depth Extension (Z)</div><div class="input-group"><input type="range" id="sill_z" min="0" max="15" step="0.5" value="3.0"><input type="number" id="sill_z_num" min="0" max="15" step="0.5"></div></div>
+                <div class="control-row"><div class="control-label">Sill Side Extension (X)</div><div class="input-group"><input type="range" id="sill_ext" min="0" max="20" step="0.5" value="4.0"><input type="number" id="sill_ext_num" min="0" max="20" step="0.5"></div></div>
+            </div>
+
+            <div class="section-title">Exterior Trim</div>
+            <div class="control-row"><div class="control-label">Trim Overhang</div><div class="input-group"><input type="range" id="trim_w" min="0" max="15" step="0.5" value="4.0"><input type="number" id="trim_w_num" min="0" max="15" step="0.5"></div></div>
+            <div class="control-row"><div class="control-label">Trim Thickness (Z)</div><div class="input-group"><input type="range" id="trim_z" min="0" max="30" step="0.1" value="2.0"><input type="number" id="trim_z_num" min="0" max="30" step="0.1"></div></div>
+
+            <div class="section-title">Grid System</div>
+            <div class="control-row"><div class="control-label">Muntin Thickness</div><div class="input-group"><input type="range" id="mt" min="0.3" max="5" step="0.1" value="1.2"><input type="number" id="mt_num" min="0.3" max="5" step="0.1"></div></div>
+            <div class="control-row"><div class="control-label">Columns</div><div class="input-group"><input type="range" id="cols" min="1" max="10" value="3"><input type="number" id="cols_num" min="1" max="10"></div></div>
+            <div class="control-row"><div class="control-label">Rows</div><div class="input-group"><input type="range" id="rows" min="1" max="10" value="4"><input type="number" id="rows_num" min="1" max="10"></div></div>
+            
+            <div class="control-label">Top Pane Proportion</div>
+            <select id="top_p">
+                <option value="0.3">Very Short</option>
+                <option value="0.5">Short</option>
+                <option value="1.0" selected>Standard</option>
+                <option value="1.5">Tall</option>
+                <option value="2.0">Very Tall</option>
+            </select>
+
+            <div class="control-label">Bottom Pane Proportion</div>
+            <select id="bot_p">
+                <option value="0.3">Very Short</option>
+                <option value="0.5">Short</option>
+                <option value="1.0" selected>Standard</option>
+                <option value="1.5">Tall</option>
+                <option value="2.0">Very Tall</option>
+            </select>
+        </div>
+
+        <div class="slicer-stats">
+            <div class="section-title" style="margin-top: 0;">Total Slicer Size</div>
+            <div class="stat-row"><span>Width (X)</span> <strong id="out_w">0.00 mm</strong></div>
+            <div class="stat-row"><span>Height (Y)</span> <strong id="out_h">0.00 mm</strong></div>
+            <div class="stat-row"><span>Thickness (Z)</span> <strong id="out_z">0.00 mm</strong></div>
+        </div>
+        <div class="export-panel">
+            <button class="btn-export" id="btn-stl">Download STL</button>
+        </div>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { STLExporter } from 'three/addons/exporters/STLExporter.js';
+
+        const viewer = document.getElementById('viewer');
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.Fog(0x0d1117, 100, 400);
+
+        const camera = new THREE.PerspectiveCamera(40, viewer.clientWidth / viewer.clientHeight, 1, 1000);
+        camera.position.set(100, 60, 150);
+        
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(viewer.clientWidth, viewer.clientHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        viewer.appendChild(renderer.domElement);
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.maxPolarAngle = Math.PI / 2 + 0.1;
+
+        scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+        const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
+        dirLight.position.set(50, 100, 80);
+        dirLight.castShadow = true;
+        dirLight.shadow.mapSize.width = 2048;
+        dirLight.shadow.mapSize.height = 2048;
+        dirLight.shadow.bias = -0.0001;
+        scene.add(dirLight);
+
+        const fillLight = new THREE.DirectionalLight(0x38bdf8, 0.3);
+        fillLight.position.set(-50, 20, -50);
+        scene.add(fillLight);
+
+        const floorGeo = new THREE.PlaneGeometry(1000, 1000);
+        const floorMat = new THREE.ShadowMaterial({ opacity: 0.3 });
+        const floor = new THREE.Mesh(floorGeo, floorMat);
+        floor.rotation.x = -Math.PI / 2;
+        floor.position.y = -15; 
+        floor.receiveShadow = true;
+        scene.add(floor);
+
+        const grid = new THREE.GridHelper(200, 20, 0x30363d, 0x1f242c);
+        grid.position.y = -14.9;
+        scene.add(grid);
+
+        let windowGroup = new THREE.Group();
+        scene.add(windowGroup);
+
+        const frameMat = new THREE.MeshStandardMaterial({ 
+            color: 0xf1f5f9, roughness: 0.3, metalness: 0.1 
+        });
+
+        const inputs = ['win_w', 'win_h', 'depth', 'ft', 'arch_h', 'sill_y', 'sill_z', 'sill_ext', 'trim_w', 'trim_z', 'mt', 'cols', 'rows'];
+        inputs.forEach(id => {
+            const range = document.getElementById(id);
+            const num = document.getElementById(id + '_num');
+            range.addEventListener('input', () => { num.value = range.value; update(); });
+            num.addEventListener('input', () => { range.value = num.value; update(); });
+            num.value = range.value; 
+        });
+
+        document.getElementById('has_arch').addEventListener('change', update);
+        document.getElementById('has_sill').addEventListener('change', update);
+        document.getElementById('top_p').addEventListener('change', update);
+        document.getElementById('bot_p').addEventListener('change', update);
+
+        // Metric/Imperial Tab Logic
+        let displayMetric = true;
+        const unitBanner = document.getElementById('unit-banner');
+        
+        document.getElementById('tab-metric').addEventListener('click', (e) => {
+            displayMetric = true;
+            e.target.classList.add('active');
+            document.getElementById('tab-imperial').classList.remove('active');
+            unitBanner.innerText = '⚠️ All units are in mm';
+            updateSizeDisplay();
+        });
+        document.getElementById('tab-imperial').addEventListener('click', (e) => {
+            displayMetric = false;
+            e.target.classList.add('active');
+            document.getElementById('tab-metric').classList.remove('active');
+            unitBanner.innerText = '⚠️ All units are in inches';
+            updateSizeDisplay();
+        });
+
+        // Updated Routing Presets Engine
+        window.loadPreset = function(type) {
+            const settings = {
+                modern: { win_w: 90, win_h: 110, depth: 5, ft: 4, has_arch: false, has_sill: false, trim_w: 3, trim_z: 2, cols: 2, rows: 2, mt: 2, top_p: '1.0', bot_p: '1.0' },
+                gothic: { win_w: 50, win_h: 95, depth: 6, ft: 3.5, has_arch: true, arch_h: 40, has_sill: true, sill_y: 5, sill_z: 4, sill_ext: 6, trim_w: 5, trim_z: 4, cols: 3, rows: 5, mt: 1, top_p: '2.0', bot_p: '0.5' },
+                classic: { win_w: 90, win_h: 110, depth: 5, ft: 4, has_arch: false, has_sill: false, trim_w: 4, trim_z: 11, cols: 2, rows: 2, mt: 2, top_p: '1.0', bot_p: '1.0' },
+                minimalist: { win_w: 90, win_h: 110, depth: 5, ft: 4, has_arch: false, has_sill: false, trim_w: 0, trim_z: 0, cols: 2, rows: 2, mt: 2, top_p: '1.0', bot_p: '1.0' }
+            };
+            const s = settings[type];
+            for (let key in s) {
+                const el = document.getElementById(key);
+                if (el) {
+                    if (el.type === 'checkbox') el.checked = s[key];
+                    else el.value = s[key];
+                }
+                
+                const numEl = document.getElementById(key + '_num');
+                if(numEl) numEl.value = s[key];
+            }
+            update();
+        };
+
+        function getProfile(w, h, ah, isArch, inset, outset, bottomOutset) {
+            const shape = new THREE.Shape();
+            const left = -(w/2) - outset + inset;
+            const right = (w/2) + outset - inset;
+            const yMin = -bottomOutset + inset;
+            let yMax = h + outset - inset;
+            if (isArch) yMax = h;
+            const aRad = (w/2) + outset - inset;
+            const aH = ah + outset - inset;
+            shape.moveTo(left, yMin); shape.lineTo(right, yMin); shape.lineTo(right, yMax);
+            if (isArch && aRad > 0 && aH > 0) shape.absellipse(0, h, aRad, aH, 0, Math.PI, false, 0);
+            else shape.lineTo(left, yMax);
+            shape.lineTo(left, yMin);
+            return shape;
+        }
+
+        function update() {
+            const archOn = document.getElementById('has_arch').checked;
+            const sillOn = document.getElementById('has_sill').checked;
+            document.getElementById('arch_group').classList.toggle('hidden', !archOn);
+            document.getElementById('sill_group').classList.toggle('hidden', !sillOn);
+
+            while(windowGroup.children.length) {
+                const child = windowGroup.children[0];
+                if(child.geometry) child.geometry.dispose();
+                windowGroup.remove(child);
+            }
+
+            // Raw inputs
+            const p = {
+                z: parseFloat(document.getElementById('depth').value), ft: parseFloat(document.getElementById('ft').value),
+                tw: parseFloat(document.getElementById('trim_w').value), tz: parseFloat(document.getElementById('trim_z').value),
+                ah: parseFloat(document.getElementById('arch_h').value), arch: archOn, sill: sillOn,
+                sill_y: parseFloat(document.getElementById('sill_y').value), sill_z: parseFloat(document.getElementById('sill_z').value),
+                sill_ext: parseFloat(document.getElementById('sill_ext').value),
+                cols: parseInt(document.getElementById('cols').value), rows: parseInt(document.getElementById('rows').value),
+                tp: parseFloat(document.getElementById('top_p').value), bp: parseFloat(document.getElementById('bot_p').value), mt: parseFloat(document.getElementById('mt').value)
+            };
+
+            // TRUE OVERALL DIMENSIONS CALCULATOR 
+            // Invert the math so the target slider values represent the absolute max boundary
+            let target_w = parseFloat(document.getElementById('win_w').value);
+            let target_h = parseFloat(document.getElementById('win_h').value);
+
+            let base_w = target_w;
+            let base_h = target_h;
+
+            // Subtract width additions
+            if (p.tw > 0 && p.tz > 0) base_w -= (p.tw * 2);
+            if (p.sill) base_w -= (p.sill_ext * 2);
+
+            // Subtract height additions
+            if (p.arch) base_h -= p.ah;
+            if (p.tw > 0 && p.tz > 0) {
+                base_h -= p.tw; // Top trim overhang
+                if (!p.sill) base_h -= p.tw; // Bottom trim overhang
+            }
+            if (p.sill) base_h -= p.sill_y; // Sill drop
+
+            // Prevent negative/broken inner frames if trim values get too crazy
+            p.w = Math.max(1, base_w);
+            p.h = Math.max(1, base_h);
+
+
+            // Main Frame
+            const outer = getProfile(p.w, p.h, p.ah, p.arch, 0, 0, 0);
+            const inner = getProfile(p.w, p.h, p.ah, p.arch, p.ft, 0, 0);
+            outer.holes.push(inner);
+            const frameGeo = new THREE.ExtrudeGeometry(outer, { depth: p.z, bevelEnabled: false, curveSegments: 64 });
+            const frameMesh = new THREE.Mesh(frameGeo, frameMat);
+            frameMesh.castShadow = true; frameMesh.receiveShadow = true;
+            windowGroup.add(frameMesh);
+
+            // Trim
+            if (p.tw > 0 && p.tz > 0) {
+                const trimOut = getProfile(p.w, p.h, p.ah, p.arch, 0, p.tw, p.sill ? 0 : p.tw);
+                const trimIn = getProfile(p.w, p.h, p.ah, p.arch, 0, 0, 0);
+                trimOut.holes.push(trimIn);
+                const trimGeo = new THREE.ExtrudeGeometry(trimOut, { depth: p.tz, bevelEnabled: false, curveSegments: 64 });
+                const trimMesh = new THREE.Mesh(trimGeo, frameMat);
+                trimMesh.castShadow = true; trimMesh.receiveShadow = true;
+                windowGroup.add(trimMesh);
+            }
+
+            // Sill Geometry Execution
+            if (p.sill) {
+                const totalSillWidth = p.w + (p.tw * 2) + (p.sill_ext * 2);
+                const totalSillDepth = p.z + p.sill_z;
+                const sGeo = new THREE.BoxGeometry(totalSillWidth, p.sill_y, totalSillDepth);
+                const sMesh = new THREE.Mesh(sGeo, frameMat);
+                sMesh.position.set(0, -p.sill_y/2, totalSillDepth/2);
+                sMesh.castShadow = true; sMesh.receiveShadow = true;
+                windowGroup.add(sMesh);
+            }
+
+            // Grid Array Processing
+            const inW = p.w - (p.ft * 2);
+            const inH = p.arch ? (p.h + p.ah - p.ft*2) : (p.h - p.ft*2);
+            let rowY = [];
+            if (p.rows > 1) {
+                let units = (p.rows === 2) ? (p.tp + p.bp) : (p.tp + p.bp + (p.rows - 2));
+                let uH = inH / units;
+                for (let j = 1; j < p.rows; j++) rowY.push(p.ft + (p.bp * uH) + ((p.rows > 2 ? j - 1 : 0) * uH));
+            }
+
+            rowY.forEach(y => {
+                let mW = inW;
+                if (p.arch && y > p.h) {
+                    let dy = y - p.h, b = p.ah - p.ft;
+                    if (b > 0 && dy < b) mW = (inW/2 * Math.sqrt(1 - Math.pow(dy/b, 2))) * 2; else mW = 0;
+                }
+                if (mW > 0) {
+                    const mMesh = new THREE.Mesh(new THREE.BoxGeometry(mW, p.mt, p.z), frameMat);
+                    mMesh.position.set(0, y, p.z/2); mMesh.castShadow = true;
+                    windowGroup.add(mMesh);
+                }
+            });
+
+            if (p.cols > 1) {
+                let pW = inW / p.cols;
+                for(let i=1; i<p.cols; i++) {
+                    const x = -(inW/2) + (pW * i);
+                    let vH = p.h - p.ft;
+                    if(p.arch && inW/2 > 0 && p.ah-p.ft > 0) vH = p.h + ((p.ah-p.ft) * Math.sqrt(Math.max(0, 1 - Math.pow(x/(inW/2), 2))));
+                    let l = vH - p.ft;
+                    if (l > 0) {
+                        const mMesh = new THREE.Mesh(new THREE.BoxGeometry(p.mt, l, p.z), frameMat);
+                        mMesh.position.set(x, p.ft + (l / 2), p.z/2); mMesh.castShadow = true;
+                        windowGroup.add(mMesh);
+                    }
+                }
+            }
+            controls.target.set(0, p.h/2, 0);
+            
+            // Force bounding box update for the Slicer Dimensions display
+            windowGroup.updateMatrixWorld();
+            updateSizeDisplay();
+        }
+
+        function updateSizeDisplay() {
+            const box = new THREE.Box3().setFromObject(windowGroup);
+            const size = new THREE.Vector3();
+            box.getSize(size);
+            
+            const unit = displayMetric ? ' mm' : ' in';
+            
+            // Fix edge cases where empty scene throws weird sizes
+            if (size.x === Infinity || size.x === -Infinity) size.set(0,0,0);
+
+            document.getElementById('out_w').innerText = size.x.toFixed(2) + unit;
+            document.getElementById('out_h').innerText = size.y.toFixed(2) + unit;
+            document.getElementById('out_z').innerText = size.z.toFixed(2) + unit;
+        }
+
+        document.getElementById('btn-stl').addEventListener('click', () => {
+            const result = new STLExporter().parse(windowGroup, { binary: true });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(new Blob([result], { type: 'application/octet-stream' }));
+            
+            const w = document.getElementById('win_w').value;
+            const h = document.getElementById('win_h').value;
+            link.download = `window_studio_pro_${w}x${h}.stl`;
+            
+            link.click();
+        });
+
+        window.addEventListener('resize', () => {
+            camera.aspect = viewer.clientWidth / viewer.clientHeight;
+            camera.updateProjectionMatrix(); renderer.setSize(viewer.clientWidth, viewer.clientHeight);
+        });
+
+        update();
+        function animate() { requestAnimationFrame(animate); controls.update(); renderer.render(scene, camera); }
+        animate();
+    </script>
+</body>
+</html>
