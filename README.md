@@ -6,11 +6,13 @@ Parametric Window Studio allows you to instantly design, visualize, and export c
 
 🌐 Try the Live Generator Here : https://nuno345.github.io/Parametric-window-studio/
 
-Note: To run this locally, you do not need to install Node.js or a build process.
+🛠️ Local Usage
+**Note:** To run this locally, you do not need to install Node.js or a build process.
 
-Clone the repository or download the HTML file.
-Open the file directly in any modern web browser (Chrome, Edge, Firefox, Safari).
-(Note: an active internet connection is required upon first load to fetch the Three.js library.)
+1. Clone the repository or download the HTML file located in the releases section.  
+2. Open the file directly in any modern web browser (Chrome, Edge, Firefox, Safari).  
+
+**Note:** An active internet connection is required upon first load to fetch the Three.js library.
 
 🚀 Features
 
@@ -62,13 +64,7 @@ Engine: Three.js
 Structure: HTML5
 Styling: Vanilla CSS (CSS Variables, Flexbox, CSS Grid)
 Logic: Modern ES6 JavaScript Modules
-🛠️ Local Usage
 
-To run this locally, you do not need to install Node.js or a build process.
-
-Clone the repository or download the HTML file.
-Open the file directly in any modern web browser (Chrome, Edge, Firefox, Safari).
-(Note: an active internet connection is required upon first load to fetch the Three.js library.)
 ⚠️ Known Issues
 Depth Dimension Accuracy
 
