@@ -6,6 +6,12 @@ Parametric Window Studio allows you to instantly design, visualize, and export c
 
 🌐 Try the Live Generator Here : https://nuno345.github.io/Parametric-window-studio/
 
+Note: To run this locally, you do not need to install Node.js or a build process.
+
+Clone the repository or download the HTML file.
+Open the file directly in any modern web browser (Chrome, Edge, Firefox, Safari).
+(Note: an active internet connection is required upon first load to fetch the Three.js library.)
+
 🚀 Features
 
 The studio provides a comprehensive suite of parametric controls, organized into an intuitive UI with real-time feedback.
