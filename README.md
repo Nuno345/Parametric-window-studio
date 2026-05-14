@@ -4,7 +4,7 @@ A powerful, browser-based 3D generator for designing custom window frames, optim
 
 Parametric Window Studio allows you to instantly design, visualize, and export complex window geometries without needing a heavy desktop CAD program. Whether you are creating architectural models, designing props, or generating parts to send straight to your 3D printer, this tool provides real-time 3D rendering and instant STL exporting directly from your browser.
 
-🌐 Try the Live Generator Here
+🌐 Try the Live Generator Here : https://nuno345.github.io/Parametric-window-studio/
 
 🚀 Features
 
