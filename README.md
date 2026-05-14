@@ -1,4 +1,4 @@
-Parametric Window Studio
+<img width="1175" height="683" alt="Window Generator Image" src="https://github.com/user-attachments/assets/d5d0697e-4d23-404e-8b09-6fba2376eb86" />
 
 A powerful, browser-based 3D generator for designing custom window frames, optimized for CAD workflows and 3D printing.
 
