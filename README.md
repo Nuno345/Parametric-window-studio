@@ -22,17 +22,21 @@ The studio provides a comprehensive suite of parametric controls, organized into
 📐 Precision Controls
 Dual-Input System: Fine-tune measurements using smooth sliders or exact numerical inputs.
 Unit Support: Toggle seamlessly between Metric (mm) and Imperial (inches).
+
 🏛️ Architectural Details
 Arched Tops: One-click toggle to add an arch top, with adjustable radius parameters.
 Integrated Sills: Generate complex window sills with independent controls for Y-drop, Z-depth extension, and X-side extension.
 Exterior Trim: Add professional casing and trim with customizable overhang and thickness parameters.
+
 🪟 Advanced Grid System
 Muntin Configuration: Define custom muntin (grid bar) thickness.
 Dynamic Grid Layouts: Set the exact number of columns and rows.
 Proportional Panes: Alter the proportions of the top and bottom panes (e.g., creating a "Craftsman" style window with standard bottom panes and very short top panes).
+
 💾 Export & Slicing
 Live Slicer Stats: The UI calculates the absolute bounding box dimensions in real-time, so you know exactly how much build volume your window will consume.
 One-Click STL Export: Instantly download an optimized, binary .stl file of your design, ready to be dropped into your slicer or CAD software.
+
 🎨 Built-in Style Presets
 
 If you need a starting point, the Studio includes routing presets that instantly reconfigure the engine:
@@ -41,6 +45,7 @@ Modern: Clean lines, deep frame, standard grid layout.
 Gothic: Tall and narrow with a dramatic arched top and an extended sill.
 Classic: Traditional thick exterior trim and standard proportions.
 Minimalist: No trim, no sills—just the pure inner frame and grid.
+
 🧩 OpenSCAD Version
 
 Before the browser-based studio was developed, this project was originally created in OpenSCAD as a fully parametric script.
@@ -56,6 +61,7 @@ Immediate STL exporting without editing source code manually
 
 While the HTML version offers a significantly improved UI and workflow, the original OpenSCAD source is preserved in the repository for reference, customization, and advanced manual editing.
 
+
 💻 Technical Stack
 
 This project runs entirely client-side. No server or backend is required to generate or export the models.
@@ -65,6 +71,7 @@ Engine: Three.js
 Structure: HTML5
 Styling: Vanilla CSS (CSS Variables, Flexbox, CSS Grid)
 Logic: Modern ES6 JavaScript Modules
+
 
 ⚠️ Known Issues
 Depth Dimension Accuracy
